@@ -12,7 +12,7 @@ const {
 } = require('./helpers');
 const {
   mkDirPromise,
-  readFilePromise,
+  readFilePromiseRelative,
   writeFilePromise,
 } = require('./utils');
 
@@ -42,9 +42,7 @@ const dir = path.join(__dirname, program.dir)
 
 // Find the path to the selected template file.
 const templatePath = (name, ext) => {
-  const { dirname } = require('path');
-  const appDir = dirname(require.main.filename);
-  return `${appDir}/templates/${name}.${ext}`;
+  return `./templates/${name}.${ext}`;
 }
 
 // Get all of our file paths worked out, for the user's project.
@@ -114,7 +112,7 @@ function createFles(files) {
   return Object.entries(files).reduce((p, [key, {name: fileName, ext}]) => p
     .then(() => {
       // Get the contents of the template file.
-      return readFilePromise(templatePath(key, ext))
+      return readFilePromiseRelative(templatePath(key, ext))
     })
     .then((template) => {
       // Replace our placeholders with real data (so far, just the component name)
