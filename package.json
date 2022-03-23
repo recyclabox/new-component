@@ -1,14 +1,14 @@
 {
-  "name": "new-component",
+  "name": "new-react-component",
   "version": "3.0.2",
   "description": "CLI for creating new React components",
-  "homepage": "https://github.com/joshwcomeau/new-component",
+  "homepage": "https://github.com/recyclabox/new-react-component",
   "repository": {
     "type": "git",
-    "url": "https://github.com/joshwcomeau/new-component"
+    "url": "https://github.com/recyclabox/new-react-component"
   },
   "bugs": {
-    "url": "https://github.com/joshwcomeau/new-component/issues"
+    "url": "https://github.com/recyclabox/new-react-component/issues"
   },
   "main": "src/index.js",
   "scripts": {
@@ -21,10 +21,10 @@
     "component",
     "boilerplate"
   ],
-  "author": "Joshua Comeau",
+  "author": "George Burrell (based on work by Joshua Comeau)",
   "license": "MIT",
   "bin": {
-    "new-component": "./src/index.js"
+    "spring-nrc": "src/index.js"
   },
   "dependencies": {
     "chalk": "^2.4.1",

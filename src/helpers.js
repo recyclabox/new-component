@@ -30,17 +30,15 @@ module.exports.getConfig = () => {
   const currentPath = process.cwd();
 
   const defaults = {
-    type: 'functional',
-    dir: 'src/components',
-    extension: 'js',
+    dir: '',
   };
 
   const globalOverrides = requireOptional(
-    `/${home}/.new-component-config.json`
+    `/${home}/.spring-config.json`
   );
 
   const localOverrides = requireOptional(
-    `/${currentPath}/.new-component-config.json`
+    `/${currentPath}/.spring-config.json`
   );
 
   return Object.assign({}, globalOverrides, localOverrides, defaults);
@@ -98,36 +96,22 @@ const logComponentType = (selected) =>
     )
     .join('  ');
 
-module.exports.logIntro = ({ name, dir, type }) => {
+module.exports.logIntro = ({ name }) => {
   console.info('\n');
-  console.info(
-    `✨  Creating the ${chalk.bold.rgb(...colors.gold)(name)} component ✨`
-  );
-  console.info('\n');
-
-  const pathString = chalk.bold.rgb(...colors.blue)(dir);
-  const typeString = logComponentType(type);
-
-  console.info(`Directory:  ${pathString}`);
-  console.info(`Type:       ${typeString}`);
-  console.info(
-    chalk.rgb(...colors.darkGray)('=========================================')
-  );
-
+  console.info(`✨  Creating the ${chalk.bold.rgb(...colors.gold)(name)} component ✨`);
+  console.info(chalk.rgb(...colors.darkGray)('========================================='));
   console.info('\n');
 };
 
-module.exports.logItemCompletion = (successText) => {
+module.exports.logItemCompletion = (successText, suffixText) => {
   const checkmark = chalk.rgb(...colors.green)('✓');
-  console.info(`${checkmark} ${successText}`);
+  const suffix = suffixText ? chalk.rgb(...colors.darkGray)(suffixText) : '';
+  console.info(`${checkmark} ${successText} ${suffix}`.trim());
 };
 
 module.exports.logConclusion = () => {
   console.info('\n');
   console.info(chalk.bold.rgb(...colors.green)('Component created! 🚀 '));
-  console.info(
-    chalk.rgb(...colors.mediumGray)('Thanks for using new-component.')
-  );
   console.info('\n');
 };
 

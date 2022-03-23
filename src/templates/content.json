@@ -1,0 +1,7 @@
+{
+  "Language": "English",
+  "headline": "This is an example headline",
+  "nested": {
+    "hello": "Hello World"
+  }
+}

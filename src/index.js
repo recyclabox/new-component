@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
-
 const program = require('commander');
-
 const {
   getConfig,
   buildPrettifier,
@@ -13,9 +11,8 @@ const {
   logError,
 } = require('./helpers');
 const {
-  requireOptional,
   mkDirPromise,
-  readFilePromiseRelative,
+  readFilePromise,
   writeFilePromise,
 } = require('./utils');
 
@@ -34,54 +31,71 @@ program
   .version(version)
   .arguments('<componentName>')
   .option(
-    '-t, --type <componentType>',
-    'Type of React component to generate (default: "functional")',
-    /^(class|pure-class|functional)$/i,
-    config.type
-  )
-  .option(
     '-d, --dir <pathToDirectory>',
-    'Path to the "components" directory (default: "src/components")',
+    'Path to the "components" directory (default: "current directory")',
     config.dir
-  )
-  .option(
-    '-x, --extension <fileExtension>',
-    'Which file extension to use for the component (default: "js")',
-    config.extension
   )
   .parse(process.argv);
 
 const [componentName] = program.args;
+const dir = path.join(__dirname, program.dir)
 
 // Find the path to the selected template file.
-const templatePath = `./templates/${program.type}.js`;
+const templatePath = (name, ext) => {
+  const { dirname } = require('path');
+  const appDir = dirname(require.main.filename);
+  return `${appDir}/templates/${name}.${ext}`;
+}
 
 // Get all of our file paths worked out, for the user's project.
-const componentDir = `${program.dir}/${componentName}`;
-const filePath = `${componentDir}/${componentName}.${program.extension}`;
-const indexPath = `${componentDir}/index.${program.extension}`;
+const componentDir = `${dir}/${componentName}`;
 
-// Our index template is super straightforward, so we'll just inline it for now.
-const indexTemplate = prettify(`\
-export * from './${componentName}';
-export { default } from './${componentName}';
-`);
+const files = {
+  index: {
+    name: `index`,
+    ext: 'ts',
+  },
+  component: {
+    name: `${componentName}`,
+    ext: 'tsx',
+  },
+  types: {
+    name: `${componentName}.types`,
+    ext: 'ts',
+  },
+  utils: {
+    name: `${componentName}.utils`,
+    ext: 'ts',
+  },
+  hook: {
+    name: `use${componentName}.hook`,
+    ext: 'ts',
+  },
+  test: {
+    name: `${componentName}.test`,
+    ext: 'ts',
+  },
+  content: {
+    name: `${componentName}.content.en`,
+    ext: 'json',
+  },
+}
 
-logIntro({ name: componentName, dir: componentDir, type: program.type });
+logIntro({ name: componentName });
 
 // Check if componentName is provided
 if (!componentName) {
   logError(
-    `Sorry, you need to specify a name for your component like this: new-component <name>`
+    `Sorry, you need to specify a name for your component like this: rnc <name>`
   );
   process.exit(0);
 }
 
 // Check to see if a directory at the given path exists
-const fullPathToParentDir = path.resolve(program.dir);
+const fullPathToParentDir = path.resolve(dir);
 if (!fs.existsSync(fullPathToParentDir)) {
   logError(
-    `Sorry, you need to create a parent "components" directory.\n(new-component is looking for a directory at ${program.dir}).`
+    `Unable to create component, failed when looking for a directory at ${dir}).`
   );
   process.exit(0);
 }
@@ -95,36 +109,36 @@ if (fs.existsSync(fullPathToComponentDir)) {
   process.exit(0);
 }
 
-// Start by creating the directory that our component lives in.
+function createFles(files) {
+  // loop through the files array
+  return Object.entries(files).reduce((p, [key, {name: fileName, ext}]) => p
+    .then(() => {
+      // Get the contents of the template file.
+      return readFilePromise(templatePath(key, ext))
+    })
+    .then((template) => {
+      // Replace our placeholders with real data (so far, just the component name)
+      return template.replace(/COMPONENT_NAME/g, componentName)
+    })
+    .then((template) => {
+      // Format it using prettier, to ensure style consistency, and write to file.
+      const filePath = `${componentDir}/${fileName}.${ext}`;
+      return writeFilePromise(filePath, ext === 'json' ? template : prettify(template))
+    }
+    )
+    .then((template) => {
+      logItemCompletion(`${key} file built and saved to disk.`)
+      return template
+    })
+  , Promise.resolve() );
+} 
+
 mkDirPromise(componentDir)
-  .then(() => readFilePromiseRelative(templatePath))
-  .then((template) => {
-    logItemCompletion('Directory created.');
-    return template;
-  })
-  .then((template) =>
-    // Replace our placeholders with real data (so far, just the component name)
-    template.replace(/COMPONENT_NAME/g, componentName)
+  .then(() => 
+    logItemCompletion('Directory created.', `(${componentDir})`)
   )
-  .then((template) =>
-    // Format it using prettier, to ensure style consistency, and write to file.
-    writeFilePromise(filePath, prettify(template))
+  .then(() => 
+    createFles(files)
   )
-  .then((template) => {
-    logItemCompletion('Component built and saved to disk.');
-    return template;
-  })
-  .then((template) =>
-    // We also need the `index.js` file, which allows easy importing.
-    writeFilePromise(indexPath, prettify(indexTemplate))
-  )
-  .then((template) => {
-    logItemCompletion('Index file built and saved to disk.');
-    return template;
-  })
-  .then((template) => {
-    logConclusion();
-  })
-  .catch((err) => {
-    console.error(err);
-  });
+  .then(() => logConclusion())
+  .catch((err) => console.error(err));
