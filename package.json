@@ -1,6 +1,6 @@
 {
   "name": "new-react-component",
-  "version": "3.0.2",
+  "version": "1.0.0",
   "description": "CLI for creating new React components",
   "homepage": "https://github.com/recyclabox/new-react-component",
   "repository": {
