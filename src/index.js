@@ -38,7 +38,8 @@ program
   .parse(process.argv);
 
 const [componentName] = program.args;
-const dir = path.join(__dirname, program.dir)
+const dir = path.join(process.cwd(), program.dir);
+
 
 // Find the path to the selected template file.
 const templatePath = (name, ext) => {
